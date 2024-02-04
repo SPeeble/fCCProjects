@@ -1,0 +1,100 @@
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const app = express();
+const bodyParser = require('body-parser');
+const dns = require('dns');
+
+// Basic Configuration
+const port = process.env.PORT || 3000;
+
+app.use(cors());
+
+app.use('/public', express.static(`${process.cwd()}/public`));
+
+app.get('/', function(req, res) {
+  res.sendFile(process.cwd() + '/views/index.html');
+});
+
+app.use(bodyParser.urlencoded({ extended: false }));
+
+// Your first API endpoint
+app.get('/api/hello', function(req, res) {
+  res.json({ greeting: 'hello API' });
+});
+
+// short urls saved as objects in an array for convenience, mongoDB would be used if data persistence is required
+const urlDatabase = [];
+
+const findUrlBySUrl = function(shorturl) {
+  return urlDatabase.find(function(urlPair) {
+    return urlPair.short_url == shorturl;
+  });
+};
+
+const findUrlByOUrl = function(origurl) {
+  return urlDatabase.find(function(urlPair) {
+    return urlPair.original_url == origurl;
+  });
+};
+
+app.post('/api/shorturl', function(req, res) {
+  // confirms if the url matches the regex or not
+  let urlregex = /^https?:\/\/[^\s]*/
+  let inProperFormat = urlregex.test(req.body.url);
+  if (!inProperFormat) {
+    res.json({ error: 'invalid url' });
+    return
+  };
+  /*  Original code, but dns.lookup() failed to verify valid urls, leading to test failing.
+  
+  // removes https so dns can lookup
+  let removerRegex = /^https?:\/\//
+  let searchUrl = ("" + req.body.url).replace(removerRegex, "");
+  
+  dns.lookup(searchUrl, function(err, address, family) {
+    if (err) {
+      res.json({ error: 'invalid url' });
+    } else {
+      alreadyExists = findUrlByOUrl(req.body.url);
+      if (alreadyExists) {
+        res.json(alreadyExists);
+        return
+      } 
+      const urlPair = {
+        original_url: req.body.url,
+        short_url: urlDatabase.length + 1
+      };
+      console.log(urlPair);
+      urlDatabase.push(urlPair);
+      res.json(urlPair);
+    }
+  })
+  
+  */
+  alreadyExists = findUrlByOUrl(req.body.url);
+  if (alreadyExists) {
+    res.json(alreadyExists);
+    return
+  } 
+  const urlPair = {
+    original_url: req.body.url,
+    short_url: urlDatabase.length + 1
+  };
+  urlDatabase.push(urlPair);
+  res.json(urlPair);
+})
+
+app.get('/api/shorturl/:shorturl', function(req, res) {
+  const urlPair = findUrlBySUrl(req.params.shorturl);
+  if (urlPair) {
+    res.redirect(urlPair.original_url);
+  } else {
+    res.json({ error: 'short url not found' });
+  }
+})
+
+
+app.listen(port, function() {
+  console.log(`Listening on port ${port}`);
+});

@@ -88,9 +88,9 @@ class SudokuSolver {
 
   bruteForceSolve(index, puzzle) {
     if (index === puzzle.length) { return puzzle; };
-    if (typeof(puzzle[index]) != 'object') { return this.bruteForceSolve(index + 1, puzzle); };
+    if (!Array.isArray(puzzle[index])) { return this.bruteForceSolve(index + 1, puzzle); };
+    let arrayCopy = [...puzzle[index]]
     for (let i = 0; i < puzzle[index].length; i++) {
-      let arrayCopy = [...puzzle[index]]
       puzzle[index] = puzzle[index][i]
       if (this.callAllChecks(puzzle, index, 'boolean') === false) {
         puzzle[index] = arrayCopy;
@@ -125,7 +125,7 @@ class SudokuSolver {
     if (this.checkRegionPlacement(puzzle, index, value) === false) { isValid.push('region') };
     if (outputKey == 'error') { 
       return isValid
-    } else if (outputKey == 'boolean') {
+    } else if (outputKey == 'boolean' && isValid.length > 0) {
       return false
     }
     return true;
@@ -152,21 +152,21 @@ class SudokuSolver {
 
   checkRowPlacement(puzzle, index, value) {
     let row = Math.floor(index / 9);
-    //let column = index % 9;
     puzzle[index] = '.';
     let rowArray = puzzle.slice(row * 9, row * 9 + 9);
+    puzzle[index] = value
     if (rowArray.includes(value)) { return false };
     return true;
   }
 
   checkColPlacement(puzzle, index, value) {
-    //let row = Math.floor(index / 9);
     let column = index % 9;
     puzzle[index] = '.';
     let colArray = [];
     for (let i = 0; i < 9; i++) {
       colArray.push(puzzle[i * 9 + column])
     };
+    puzzle[index] = value
     if (colArray.includes(value)) { return false };
     return true;
   }
@@ -184,6 +184,7 @@ class SudokuSolver {
         regionArray.push(puzzle[startPos + j])
       }
     }
+    puzzle[index] = value
     if (regionArray.includes(value)) { return false };
     return true;
   }
@@ -191,3 +192,4 @@ class SudokuSolver {
 }
 
 module.exports = SudokuSolver;
+

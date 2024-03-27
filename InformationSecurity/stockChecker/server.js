@@ -11,8 +11,13 @@ const helmet            = require('helmet');
 
 const app = express();
 
-app.use(helmet());
-app.use(helmet.contentSecurityPolicy({directives: {defaultSrc: ["'self'"], scriptSrc: ["'self'", "trusted-cdn.com"]}}))
+app.use(helmet())
+app.use(helmet.contentSecurityPolicy({
+    directives: {
+      "default-src": ["'self'"],
+      "script-src": ["'self'", "localhost", "*.jquery.com", "'unsafe-inline'"],
+      "style-src": ["'self'", "localhost", "'unsafe-inline'"],
+}}));
 
 app.use('/public', express.static(process.cwd() + '/public'));
 

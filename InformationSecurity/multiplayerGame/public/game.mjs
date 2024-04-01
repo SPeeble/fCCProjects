@@ -57,10 +57,11 @@ socket.on('init', (id) => {
       const collectibleToDraw = collectibles[i];
       drawCollectible(collectibleToDraw)
     }
-    const sorted = players.sort((a, b) => b.score - a.score)
-    const playerPosition = sorted.findIndex(entry => entry.id === this.id)
-    const playerScore = sorted[playerPos].score
-    const playerPos = toString(playerPosition + 1)
+    
+    players.sort((a, b) => b.score - a.score)
+    const playerPosition = players.findIndex(entry => entry.id === id)
+    const playerScore = players[playerPosition].score
+    const playerPos = (playerPosition + 1).toString()
     if (playerPos === "1") {
       winnerText.innerText = `You are winning with a score of ${playerScore}!`
     } else {
